@@ -83,7 +83,7 @@ function draw() {
 
   // 4. Draw the Constellation
   // Using ADD blend mode makes colors "glow" by adding light values
-  blendMode(ADD);
+  /* blendMode(ADD);
 
   let pulse = map(sin(frameCount * 0.1), -1, 1, 0.7, 1.0);
 
@@ -123,6 +123,49 @@ function draw() {
 
   // Switch back to normal blending for text clarity
   blendMode(BLEND);
+ */
+
+  // --- HIGH VISIBILITY NEON CONSTELLATION ---
+  blendMode(ADD); // This makes colors "stack" and glow
+
+  // Faster, more dramatic pulse
+  let pulse = map(sin(frameCount * 0.15), -1, 1, 0.4, 1.2);
+
+  for (let i = 0; i < gridSpots.length; i++) {
+    let pA = gridSpots[i];
+    for (let j = i + 1; j < gridSpots.length; j++) {
+      let pB = gridSpots[j];
+      let d = dist(pA.x, pA.y, pB.x, pB.y);
+
+      let isNeighbor = d < connectionMax;
+      let isLongBridge = d > 350 && (i + j) % 41 == 0;
+
+      if (isNeighbor || isLongBridge) {
+        let alpha = isLongBridge ? 100 : map(d, 0, connectionMax, 255, 50);
+
+        // 1. THE OUTER GLOW (Wide Magenta)
+        // This creates the "aura" around the line
+        stroke(255, 0, 255, alpha * pulse * 0.3);
+        strokeWeight(isLongBridge ? 2 : 8); // Thick glow
+        line(pA.x, pA.y, pB.x, pB.y);
+
+        // 2. THE INNER FILAMENT (Bright Cyan/White)
+        // This is the "hot" center of the neon light
+        stroke(150, 255, 255, alpha * pulse);
+        strokeWeight(isLongBridge ? 0.8 : 2.5);
+        line(pA.x, pA.y, pB.x, pB.y);
+      }
+    }
+
+    // THE "STARS" (Points)
+    // Adding a larger "aura" to the dots so they look like glowing bulbs
+    fill(255, 0, 255, 150 * pulse);
+    ellipse(pA.x, pA.y, 12, 12); // The glow
+    fill(255);
+    ellipse(pA.x, pA.y, 5, 5); // The center
+  }
+
+  blendMode(BLEND); // Reset to normal for text
 
   // 5. Draw Labels
   for (let pt of gridSpots) {
